@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: google-maps-measure-tools
+    runtime: static
+    buildCommand: npm ci --include=dev && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        sync: false
