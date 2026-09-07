@@ -1,8 +1,12 @@
-import React, { useState, useCallback } from "react";
+import { useState } from "react";
 import Result from "./Result";
-import { radiusOptions, RadiusOption } from "../utils/circleUtils";
+import { radiusOptions } from "../utils/circleUtils";
 import InteractiveCircleMap from "./InteractiveCircleMap";
 import { useMapDrawing } from "../hooks/useMapDrawing";
+import MeasurementWorkspace, {
+  WorkspaceViewProps,
+} from "./MeasurementWorkspace";
+import Icon from "./Icon";
 
 export interface CircleState {
   radius: number | null;
@@ -10,82 +14,92 @@ export interface CircleState {
   perimeter: number | null;
 }
 
-const CircleMap: React.FC = () => {
-  const [radiusSelected, setRadiusSelected] = useState<number>(0);
+export default function CircleMap(viewProps: WorkspaceViewProps) {
+  const [radiusSelected, setRadiusSelected] = useState(0);
   const [circleState, setCircleState] = useState<CircleState>({
     radius: null,
     area: null,
     perimeter: null,
   });
-
-  const handleSelectRadiusChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const newRadius = Number(event.target.value);
-      setRadiusSelected(newRadius);
-    },
-    [],
-  );
-
   const mapDrawing = useMapDrawing();
   const { isDrawing, hasDrawing } = mapDrawing.drawingState;
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-4 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-        <div className="select w-full sm:w-auto">
+    <MeasurementWorkspace
+      {...viewProps}
+      mode="radius"
+      isDrawing={isDrawing}
+      hasDrawing={hasDrawing}
+      controls={
+        <>
+          <label className="control-heading" htmlFor="radius-select">
+            RADIO DEL CÍRCULO <Icon name="radius" />
+          </label>
           <select
-            className="select__field w-full sm:w-auto"
+            id="radius-select"
+            className="radius-select"
             value={radiusSelected}
-            onChange={handleSelectRadiusChange}
-            disabled={hasDrawing && !isDrawing}
+            onChange={(event) => setRadiusSelected(Number(event.target.value))}
+            disabled={!viewProps.mapReady || (hasDrawing && !isDrawing)}
+            aria-describedby="radius-description"
           >
-            <option value="0" className="select__option" disabled>
-              Selecciona un radio
-            </option>
-            {radiusOptions.map((option: RadiusOption) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            <option value={0}>Personalizado · dibujar en el mapa</option>
+            {radiusOptions
+              .filter((option) => option.value > 0)
+              .map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
           </select>
-        </div>
-        <button
-          className="button button--secondary w-full sm:w-auto"
-          onClick={mapDrawing.handleStartDrawing}
-          disabled={isDrawing}
-        >
-          {circleState.radius ? "Editar" : "Dibujar"}
-        </button>
-        <button
-          className="button button--secondary w-full sm:w-auto"
-          onClick={mapDrawing.handleStopDrawing}
-          disabled={!isDrawing}
-        >
-          Cancelar
-        </button>
-        <button
-          className="button button--secondary w-full sm:w-auto"
-          onClick={mapDrawing.handleClearDrawing}
-          disabled={!hasDrawing}
-        >
-          Limpiar
-        </button>
-      </div>
-
-      <p className="mb-2 text-sm">
-        Elige un radio y haz clic en el centro del círculo, o pulsa Dibujar y
-        haz dos clics: primero el centro y después el borde. Puedes ajustar el
-        círculo con sus puntos de edición.
-      </p>
+          <p className="control-description" id="radius-description">
+            {hasDrawing
+              ? "Pulsa Editar círculo para ajustar sus controles o cambiar el radio."
+              : radiusSelected > 0
+              ? "Haz clic en el mapa para colocar el centro del círculo con el radio elegido."
+              : "Pulsa Dibujar círculo. Marca primero el centro y después un punto en el borde."}
+          </p>
+          <button
+            className="action-button action-button--primary"
+            onClick={mapDrawing.handleStartDrawing}
+            disabled={isDrawing || !viewProps.mapReady}
+          >
+            <Icon name="pen" />
+            {isDrawing
+              ? "Edición en curso"
+              : hasDrawing
+                ? "Editar círculo"
+                : "Dibujar círculo"}
+            <Icon name="arrow" />
+          </button>
+          <div className="secondary-actions">
+            <button
+              className="action-button"
+              onClick={mapDrawing.handleStopDrawing}
+              disabled={!isDrawing}
+            >
+              <Icon name="stop" />
+              {hasDrawing ? "Finalizar" : "Cancelar"}
+            </button>
+            <button
+              className="action-button action-button--clear"
+              onClick={mapDrawing.handleClearDrawing}
+              disabled={!hasDrawing}
+            >
+              <Icon name="trash" />
+              Limpiar
+            </button>
+          </div>
+        </>
+      }
+      results={<Result circleState={circleState} hasDrawing={hasDrawing} />}
+    >
       <InteractiveCircleMap
         setCircleState={setCircleState}
         useMapDrawing={mapDrawing}
         radiusSelected={radiusSelected}
         setRadiusSelected={setRadiusSelected}
       />
-      <Result circleState={circleState} />
-    </div>
+    </MeasurementWorkspace>
   );
-};
-
-export default CircleMap;
+}

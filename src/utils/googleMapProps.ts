@@ -13,7 +13,7 @@ export const libraries: Libraries = ["geometry", "marker"];
 export const googleMapProps: GoogleMapProps = {
   mapContainerStyle: {
     width: "100%",
-    height: "60vh",
+    height: "100%",
   },
   center: {
     lat: 40.41831,
@@ -23,5 +23,8 @@ export const googleMapProps: GoogleMapProps = {
   options: {
     disableDefaultUI: true,
     zoomControl: true,
+    fullscreenControl: true,
+    scaleControl: true,
+    clickableIcons: false,
   },
 };

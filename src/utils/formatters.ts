@@ -3,14 +3,19 @@
  * @param meters Número de metros a formatear
  * @returns Cadena formateada con la medida en metros o kilómetros
  */
+const numberFormatter = new Intl.NumberFormat("es-ES", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export const formatLinearMeasure = (meters: number | null): string => {
   if (meters === null) return "N/A";
 
   if (meters < 1000) {
-    return `${meters.toFixed(2)} m`;
+    return `${numberFormatter.format(meters)} m`;
   } else {
     const kilometers = meters / 1000;
-    return `${kilometers.toFixed(2)} km`;
+    return `${numberFormatter.format(kilometers)} km`;
   }
 };
 
@@ -23,9 +28,9 @@ export const formatAreaMeasure = (squareMeters: number | null): string => {
   if (squareMeters === null) return "N/A";
 
   if (squareMeters < 1000000) {
-    return `${squareMeters.toFixed(2)} m²`;
+    return `${numberFormatter.format(squareMeters)} m²`;
   } else {
     const squareKilometers = squareMeters / 1000000;
-    return `${squareKilometers.toFixed(2)} km²`;
+    return `${numberFormatter.format(squareKilometers)} km²`;
   }
 };

@@ -7,9 +7,9 @@ import {
 } from "../types/googleMapsTypes";
 
 export const polygonOptions: TPolylineOptions = {
-  strokeColor: "#0000FF",
-  strokeOpacity: 0.8,
-  strokeWeight: 2,
+  strokeColor: "#0f766e",
+  strokeOpacity: 1,
+  strokeWeight: 3,
 };
 
 function convertLatLngToLatLngLiteral(latLang: TLatLng): TLatLngLiteral {

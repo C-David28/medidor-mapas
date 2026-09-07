@@ -1,38 +1,83 @@
-import React from "react";
 import { formatAreaMeasure, formatLinearMeasure } from "../utils/formatters";
-import { PolylineState } from "./PolylineMap";
-import { CircleState } from "./CircleMap";
+import type { PolylineState } from "./PolylineMap";
+import type { CircleState } from "./CircleMap";
+import Icon from "./Icon";
 
 interface ResultProps {
   circleState?: CircleState;
   polylineState?: PolylineState;
+  hasDrawing?: boolean;
 }
 
-const Result: React.FC<ResultProps> = ({ circleState, polylineState }) => {
-  if (circleState) {
-    const { radius, area, perimeter } = circleState;
-    return (
-      <div className="mt-4 rounded bg-gray-100 p-4 shadow-lg">
-        <p className="mb-2">Radio: {formatLinearMeasure(radius)}</p>
-        <p className="mb-2">Área: {formatAreaMeasure(area)}</p>
-        <p className="mb-2">Perímetro: {formatLinearMeasure(perimeter)}</p>
+export default function Result({
+  circleState,
+  polylineState,
+  hasDrawing = false,
+}: ResultProps) {
+  const mainValue = circleState
+    ? circleState.radius
+    : polylineState?.totalDistance;
+  const area = circleState ? circleState.area : polylineState?.area;
+  return (
+    <section className="results-panel" aria-labelledby="results-title">
+      <div className="section-label">
+        <span className="step-number">02</span> RESULTADOS
       </div>
-    );
-  }
-
-  if (polylineState) {
-    const { totalDistance, area } = polylineState;
-    return (
-      <div className="mt-4 rounded bg-gray-100 p-4 shadow-lg">
-        <p className="mb-2">
-          Distancia total: {formatLinearMeasure(totalDistance)}
-        </p>
-        <p className="mb-2">Área: {formatAreaMeasure(area)}</p>
+      <div className="results-heading">
+        <h2 id="results-title">Tu medición</h2>
+        <span
+          className={`result-indicator ${hasDrawing ? "has-result" : ""}`}
+        />
       </div>
-    );
-  }
-
-  return null;
-};
-
-export default Result;
+      <dl className="measurement-values" aria-live="polite" aria-atomic="true">
+        <div className="primary-metric">
+          <dt>
+            <Icon name={circleState ? "radius" : "route"} />
+            {circleState ? "Radio del círculo" : "Distancia total"}
+          </dt>
+          <dd>
+            {hasDrawing && mainValue != null ? (
+              formatLinearMeasure(mainValue)
+            ) : (
+              <>
+                <span className="empty-measure">—</span>
+                <small> m</small>
+              </>
+            )}
+          </dd>
+        </div>
+        <div className="secondary-metric">
+          <dt>
+            <Icon name="area" />
+            Área {circleState ? "de cobertura" : "del polígono"}
+          </dt>
+          <dd>
+            {hasDrawing && area != null && area > 0
+              ? formatAreaMeasure(area)
+              : "—"}
+          </dd>
+        </div>
+        {circleState && (
+          <div className="secondary-metric">
+            <dt>
+              <Icon name="radius" />
+              Perímetro
+            </dt>
+            <dd>
+              {hasDrawing && circleState.perimeter != null
+                ? formatLinearMeasure(circleState.perimeter)
+                : "—"}
+            </dd>
+          </div>
+        )}
+      </dl>
+      <p className="result-hint">
+        {!hasDrawing
+          ? "Los resultados aparecerán al dibujar sobre el mapa."
+          : !circleState && !area
+            ? "Cierra el trazado sobre el primer punto para calcular el área."
+            : "La medición se actualiza al ajustar tu dibujo."}
+      </p>
+    </section>
+  );
+}
